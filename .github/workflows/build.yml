@@ -6,36 +6,25 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-linux:
-    runs-on: ubuntu-latest
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: ubuntu-latest
+            binary: bili-sniffer-linux
+          - os: windows-latest
+            binary: bili-sniffer-windows.exe
+    runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
+        with:
+          python-version: "3.11"
       - run: pip install pyinstaller requests browser_cookie3 cryptography
-      - run: pyinstaller --onefile --name bili-sniffer-linux bilibili_sniffer.py
-      - uses: actions/upload-release-asset@v1
+      - run: pyinstaller --onefile --name ${{ matrix.binary }} bilibili_sniffer.py
+      - uses: softprops/action-gh-release@v2
+        if: github.event_name == 'release'
+        with:
+          files: dist/${{ matrix.binary }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: dist/bili-sniffer-linux
-          asset_name: bili-sniffer-linux
-          asset_content_type: application/octet-stream
-
-  build-windows:
-    runs-on: windows-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with: { python-version: "3.11" }
-      - run: pip install pyinstaller requests browser_cookie3 cryptography
-      - run: pyinstaller --onefile --name bili-sniffer-windows.exe bilibili_sniffer.py
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ github.event.release.upload_url }}
-          asset_path: dist/bili-sniffer-windows.exe
-          asset_name: bili-sniffer-windows.exe
-          asset_content_type: application/octet-stream
