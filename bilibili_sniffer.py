@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.12"
+VERSION = "1.1.13"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -1556,10 +1556,10 @@ def _i_settings(args):
         else:
             print(f"  [4] 合并后删m4s:   {dim('否(需ffmpeg合并)')}")
         if has_ffmpeg:
-            print(f"  [5] 下载字幕:      {cyan('是' if sub else '否')} (自动合并: {cyan('是' if ams else '否')})")
+            print(f"  [5] 下载字幕:      {cyan('是' if sub else '否')} (自动合并到视频: {cyan('是' if ams else '否')})")
             print(f"  [6] 下载弹幕:      {cyan('是' if dm else '否')} (自动合并: {cyan('是' if amd else '否')})")
         else:
-            print(f"  [5] 下载字幕:      {cyan('是' if sub else '否')} (自动合并: {dim('否(需ffmpeg)')})")
+            print(f"  [5] 下载字幕:      {cyan('是' if sub else '否')} (自动合并到视频: {dim('否(需ffmpeg)')})")
             print(f"  [6] 下载弹幕:      {cyan('是' if dm else '否')} (自动合并: {dim('否(需ffmpeg)')})")
         print(f"  [7] 下载封面:      {cyan('是' if cov else '否')}")
         print(f"  [8] 完成通知:      {cyan('是' if nt else '否')}")
