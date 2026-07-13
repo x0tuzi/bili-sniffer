@@ -79,10 +79,11 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.10"
+VERSION = "1.1.11"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
+GITHUB_VERSION  = f"{GITHUB_RAW}/VERSION"
 
 API_NAV_STAT    = 'https://api.bilibili.com/x/web-interface/nav/stat'
 API_DAILY_CLICK = 'https://api.bilibili.com/x/report/click/now'
@@ -1695,22 +1696,18 @@ def _gh_request(url, **kwargs):
 def _check_update():
     last_err = None
     for i, mirror in enumerate(GH_MIRRORS):
-        url = GITHUB_API
+        url = GITHUB_VERSION
         u = mirror + url if mirror else url
         label = mirror if mirror else '直连'
         try:
             r = requests.get(u, headers=HEADERS, timeout=10)
             r.raise_for_status()
-            data = r.json()
-            latest = data['tag_name'].lstrip('v')
-            assets = {}
-            for a in data.get('assets', []):
-                assets[a['name']] = a['browser_download_url']
+            latest = r.text.strip()
             def _ver(s):
                 try: return tuple(int(x) for x in s.split('.'))
                 except: return (0,)
             has = _ver(latest) > _ver(VERSION)
-            return has, latest, assets, None
+            return has, latest, None
         except (requests.exceptions.ConnectionError,
                 requests.exceptions.Timeout,
                 requests.exceptions.HTTPError,
@@ -1722,12 +1719,12 @@ def _check_update():
             if i < len(GH_MIRRORS) - 1:
                 print(f'  {yellow("[!]")} {label}: {err_msg}')
             continue
-    return None, None, {}, last_err
+    return None, None, last_err
 
 def _do_update(args=None):
     print(bold(f"\n{'─'*40}"))
     print(bold(f"  检查更新..."))
-    has_upd, latest, assets, err = _check_update()
+    has_upd, latest, err = _check_update()
     if has_upd is None:
         print(red(f"  [!] 检查失败: {err}"))
         return
@@ -1753,10 +1750,7 @@ def _do_update(args=None):
             asset_name = 'bili-sniffer-macos'
         else:
             asset_name = 'bili-sniffer-linux'
-        dl_url = assets.get(asset_name)
-        if not dl_url:
-            print(red(f"  [!] 未找到 {asset_name}"))
-            return
+        dl_url = f"https://github.com/{GITHUB_REPO}/releases/download/v{latest}/{asset_name}"
         print(cyan(f"  [*] 当前程序: {src}"))
     else:
         src = os.path.abspath(__file__)
