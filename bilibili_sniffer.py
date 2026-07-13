@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.8"
+VERSION = "1.1.9"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -1711,10 +1711,16 @@ def _check_update():
                 except: return (0,)
             has = _ver(latest) > _ver(VERSION)
             return has, latest, assets, None
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, ValueError) as e:
+        except (requests.exceptions.ConnectionError,
+                requests.exceptions.Timeout,
+                requests.exceptions.HTTPError,
+                ValueError, KeyError) as e:
             last_err = e
+            err_msg = str(e)
+            if '403' in err_msg:
+                err_msg = 'API 限流 (403)'
             if i < len(GH_MIRRORS) - 1:
-                print(f'  {yellow("[!]")} {label} 失败，尝试下一个...')
+                print(f'  {yellow("[!]")} {label}: {err_msg}')
             continue
     return None, None, {}, last_err
 
