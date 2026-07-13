@@ -65,4 +65,18 @@ WRAPPER
     ;;
 esac
 
-echo -e "\n${YELLOW}[!] 请确保 ${INSTALL_DIR} 在 PATH 中，否则请自行添加。${RESET}"
+# 自动添加到 PATH（如果还没有）
+if ! echo "${PATH}" | tr ':' '\n' | grep -qxF "${INSTALL_DIR}"; then
+    for rc in "${HOME}/.bashrc" "${HOME}/.zshrc" "${HOME}/.profile"; do
+        if [ -f "${rc}" ]; then
+            grep -qxF 'export PATH="${HOME}/.local/bin:${PATH}"' "${rc}" 2>/dev/null || \
+                echo 'export PATH="${HOME}/.local/bin:${PATH}"' >> "${rc}"
+            FOUND_RC=1
+        fi
+    done
+    if [ "${FOUND_RC}" = "1" ]; then
+        export PATH="${INSTALL_DIR}:${PATH}"
+        echo -e "${GREEN}[+] 已将 ~/.local/bin 加入 PATH${RESET}"
+        echo -e "    ${GREEN}重新打开终端生效，或执行: source ~/.bashrc${RESET}"
+    fi
+fi
