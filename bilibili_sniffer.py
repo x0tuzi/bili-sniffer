@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.6"
+VERSION = "1.1.7"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -1693,29 +1693,37 @@ def _gh_request(url, **kwargs):
     raise requests.exceptions.ConnectionError(f'所有镜像均不可达: {last_err}')
 
 def _check_update():
-    try:
-        r = _gh_request(GITHUB_API, headers=HEADERS, timeout=10)
-        r.raise_for_status()
-        data = r.json()
-        latest = data['tag_name'].lstrip('v')
-        assets = {}
-        for a in data.get('assets', []):
-            assets[a['name']] = a['browser_download_url']
-        def _ver(s):
-            try: return tuple(int(x) for x in s.split('.'))
-            except: return (0,)
-        if _ver(latest) > _ver(VERSION):
-            return True, latest, assets
-        return False, latest, assets
-    except Exception as e:
-        return None, str(e), {}
+    last_err = None
+    for i, mirror in enumerate(GH_MIRRORS):
+        url = GITHUB_API
+        u = mirror + url if mirror else url
+        label = mirror if mirror else '直连'
+        try:
+            r = requests.get(u, headers=HEADERS, timeout=10)
+            r.raise_for_status()
+            data = r.json()
+            latest = data['tag_name'].lstrip('v')
+            assets = {}
+            for a in data.get('assets', []):
+                assets[a['name']] = a['browser_download_url']
+            def _ver(s):
+                try: return tuple(int(x) for x in s.split('.'))
+                except: return (0,)
+            has = _ver(latest) > _ver(VERSION)
+            return has, latest, assets, None
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout, ValueError) as e:
+            last_err = e
+            if i < len(GH_MIRRORS) - 1:
+                print(f'  {yellow("[!]")} {label} 失败，尝试下一个...')
+            continue
+    return None, None, {}, last_err
 
 def _do_update(args=None):
     print(bold(f"\n{'─'*40}"))
     print(bold(f"  检查更新..."))
-    has_upd, latest, assets = _check_update()
+    has_upd, latest, assets, err = _check_update()
     if has_upd is None:
-        print(red(f"  [!] 检查失败: {latest}"))
+        print(red(f"  [!] 检查失败: {err}"))
         return
     if not has_upd:
         print(green(f"  已是最新版本 v{VERSION}"))
