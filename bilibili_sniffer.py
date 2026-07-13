@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.0"
+VERSION = "1.1.1"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -1680,7 +1680,10 @@ def _check_update():
         assets = {}
         for a in data.get('assets', []):
             assets[a['name']] = a['browser_download_url']
-        if latest != VERSION:
+        def _ver(s):
+            try: return tuple(int(x) for x in s.split('.'))
+            except: return (0,)
+        if _ver(latest) > _ver(VERSION):
             return True, latest, assets
         return False, latest, assets
     except Exception as e:
