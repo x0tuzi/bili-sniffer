@@ -7,7 +7,7 @@ B站视频下载器 — 支持 API 获取全清晰度流地址、批量下载、
 ### Linux / macOS
 
 ```bash
-curl -fsSL https://raw.githubusercontent.com/anomalyco/bili-sniffer/main/install.sh | bash
+curl -fsSL https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main/install.sh | bash
 ```
 
 安装器提供三种方式:
@@ -18,13 +18,13 @@ curl -fsSL https://raw.githubusercontent.com/anomalyco/bili-sniffer/main/install
 ### Windows
 
 ```powershell
-Invoke-WebRequest -Uri https://raw.githubusercontent.com/anomalyco/bili-sniffer/main/install.bat -OutFile install.bat; .\install.bat
+Invoke-WebRequest -Uri https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main/install.bat -OutFile install.bat; .\install.bat
 ```
 
 ### 手动
 
 ```bash
-git clone https://github.com/anomalyco/bili-sniffer.git
+git clone https://github.com/x0tuzi/bili-sniffer.git
 cd bili-sniffer
 pip install -r requirements.txt
 python bilibili_sniffer.py

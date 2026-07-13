@@ -15,8 +15,8 @@ if "%choice%"=="" set choice=1
 set INSTALL_DIR=%USERPROFILE%\.local\bin
 if not exist "%INSTALL_DIR%" mkdir "%INSTALL_DIR%"
 
-set RAW=https://raw.githubusercontent.com/anomalyco/bili-sniffer/main
-set RELEASE=https://github.com/anomalyco/bili-sniffer/releases/latest/download
+set RAW=https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main
+set RELEASE=https://github.com/x0tuzi/bili-sniffer/releases/latest/download
 
 if "%choice%"=="1" (
     echo.

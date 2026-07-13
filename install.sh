@@ -16,8 +16,8 @@ choice="${choice:-1}"
 INSTALL_DIR="${HOME}/.local/bin"
 mkdir -p "${INSTALL_DIR}"
 
-GITHUB_RAW="https://raw.githubusercontent.com/anomalyco/bili-sniffer/main"
-GITHUB_RELEASE="https://github.com/anomalyco/bili-sniffer/releases/latest/download"
+GITHUB_RAW="https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main"
+GITHUB_RELEASE="https://github.com/x0tuzi/bili-sniffer/releases/latest/download"
 
 case "$choice" in
   1)
