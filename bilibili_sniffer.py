@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.4"
+VERSION = "1.1.6"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -1671,18 +1671,26 @@ def _settings_sub(label, dl_key, mux_key):
         elif ch == '3' or ch == '':
             save_config(); break
 
-GH_MIRRORS = ['', 'https://ghproxy.com/']
+GH_MIRRORS = [
+    '',
+    'https://ghproxy.com/',
+    'https://mirror.ghproxy.com/',
+    'https://gh.api.99988866.xyz/',
+]
 
 def _gh_request(url, **kwargs):
-    for mirror in GH_MIRRORS:
+    last_err = None
+    for i, mirror in enumerate(GH_MIRRORS):
         u = mirror + url if mirror else url
+        label = mirror if mirror else '直连'
         try:
             return requests.get(u, **kwargs)
-        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
-            if mirror:
-                raise
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout) as e:
+            last_err = e
+            if i < len(GH_MIRRORS) - 1:
+                print(f'  {yellow("[!]")} {label} 失败，尝试下一个...')
             continue
-    raise requests.exceptions.ConnectionError(f'无法访问 GitHub: {url}')
+    raise requests.exceptions.ConnectionError(f'所有镜像均不可达: {last_err}')
 
 def _check_update():
     try:
