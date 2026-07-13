@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.2.1"
+VERSION = "1.1.4"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -1671,9 +1671,22 @@ def _settings_sub(label, dl_key, mux_key):
         elif ch == '3' or ch == '':
             save_config(); break
 
+GH_MIRRORS = ['', 'https://ghproxy.com/']
+
+def _gh_request(url, **kwargs):
+    for mirror in GH_MIRRORS:
+        u = mirror + url if mirror else url
+        try:
+            return requests.get(u, **kwargs)
+        except (requests.exceptions.ConnectionError, requests.exceptions.Timeout):
+            if mirror:
+                raise
+            continue
+    raise requests.exceptions.ConnectionError(f'无法访问 GitHub: {url}')
+
 def _check_update():
     try:
-        r = requests.get(GITHUB_API, headers=HEADERS, timeout=10)
+        r = _gh_request(GITHUB_API, headers=HEADERS, timeout=10)
         r.raise_for_status()
         data = r.json()
         latest = data['tag_name'].lstrip('v')
@@ -1731,7 +1744,7 @@ def _do_update(args=None):
     print(cyan(f"  下载地址: {dl_url}"))
     print(cyan(f"  [*] 正在连接..."), end='', flush=True)
     try:
-        r = requests.get(dl_url, headers=HEADERS, timeout=(10, 120), stream=True)
+        r = _gh_request(dl_url, headers=HEADERS, timeout=(10, 120), stream=True)
         print(f"\r  {cyan('[→] 连接成功，下载中...')}     ", flush=True)
         r.raise_for_status()
         total = int(r.headers.get('content-length', 0))
