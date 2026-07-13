@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.16"
+VERSION = "1.1.17"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -722,7 +722,7 @@ def _mux_subtitles(video_path, sub_path, danmaku_path):
     print(cyan(f"  [*] 混流字幕/弹幕到视频..."))
     tmp_out = video_path + f'_muxing_tmp{out_ext}'
     cmd = ['ffmpeg', '-y'] + inputs + codec_args + maps + [tmp_out]
-    result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    result = subprocess.run(cmd, capture_output=True, text=True)
     if result.returncode == 0 and os.path.exists(tmp_out) and os.path.getsize(tmp_out) > 0:
         os.remove(video_path)
         final_out = os.path.splitext(video_path)[0] + out_ext
@@ -735,6 +735,10 @@ def _mux_subtitles(video_path, sub_path, danmaku_path):
     else:
         if os.path.exists(tmp_out):
             os.remove(tmp_out)
+        errmsg = result.stderr.strip()
+        if errmsg:
+            for line in errmsg.split('\n'):
+                print(yellow(f"    {line}"))
         print(yellow("  [!] 混流失败，保留原始文件"))
 
 def _notify(title, message):
@@ -1559,10 +1563,10 @@ def _i_settings(args):
             print(f"  [4] 合并后删m4s:   {dim('否(需ffmpeg合并)')}")
         if has_ffmpeg:
             print(f"  [5] 下载字幕:      {cyan('是' if sub else '否')} (自动合并到视频: {cyan('是' if ams else '否')})")
-            print(f"  [6] 下载弹幕:      {cyan('是' if dm else '否')} (烧录到视频: {cyan('是' if amd else '否')})")
+            print(f"  [6] 下载弹幕:      {cyan('是' if dm else '否')} (混流到视频: {cyan('是' if amd else '否')})")
         else:
             print(f"  [5] 下载字幕:      {cyan('是' if sub else '否')} (自动合并到视频: {dim('否(需ffmpeg)')})")
-            print(f"  [6] 下载弹幕:      {cyan('是' if dm else '否')} (烧录到视频: {dim('否(需ffmpeg)')})")
+            print(f"  [6] 下载弹幕:      {cyan('是' if dm else '否')} (混流到视频: {dim('否(需ffmpeg)')})")
         print(f"  [7] 下载封面:      {cyan('是' if cov else '否')}")
         print(f"  [8] 完成通知:      {cyan('是' if nt else '否')}")
         print(f"  [9] 重试次数:      {cyan(str(rt))}")
