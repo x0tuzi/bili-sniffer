@@ -79,6 +79,11 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
+VERSION         = "1.0.0"
+GITHUB_REPO     = "x0tuzi/bili-sniffer"
+GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
+GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
+
 API_NAV_STAT    = 'https://api.bilibili.com/x/web-interface/nav/stat'
 API_DAILY_CLICK = 'https://api.bilibili.com/x/report/click/now'
 
@@ -1559,9 +1564,10 @@ def _i_settings(args):
         print(f"  [8] 完成通知:      {cyan('是' if nt else '否')}")
         print(f"  [9] 重试次数:      {cyan(str(rt))}")
         print(f"  [10] 保存Cookie:   {cyan('是' if sc else '否')}")
+        print(f"  [u] 检查更新       (当前 v{VERSION})")
         print(f"{'─'*40}")
         try:
-            ch = input(f"  修改 [1-10] (回车返回): ").strip()
+            ch = input(f"  修改 [1-10/u] (回车返回): ").strip()
         except (EOFError, KeyboardInterrupt):
             print(); break
         if not ch:
@@ -1631,6 +1637,8 @@ def _i_settings(args):
             SESSION['save_cookie'] = not sc
             print(green(f"  => {'是' if not sc else '否'}"))
             save_config()
+        elif ch.lower() == 'u':
+            _do_update()
 
 def _settings_sub(label, dl_key, mux_key):
     has_ffmpeg = bool(shutil.which('ffmpeg'))
@@ -1662,6 +1670,94 @@ def _settings_sub(label, dl_key, mux_key):
             save_config()
         elif ch == '3' or ch == '':
             save_config(); break
+
+def _check_update():
+    try:
+        r = requests.get(GITHUB_API, headers=HEADERS, timeout=10)
+        r.raise_for_status()
+        data = r.json()
+        latest = data['tag_name'].lstrip('v')
+        assets = {}
+        for a in data.get('assets', []):
+            assets[a['name']] = a['browser_download_url']
+        if latest != VERSION:
+            return True, latest, assets
+        return False, latest, assets
+    except Exception as e:
+        return None, str(e), {}
+
+def _do_update(args=None):
+    print(bold(f"\n{'─'*40}"))
+    print(bold(f"  检查更新..."))
+    has_upd, latest, assets = _check_update()
+    if has_upd is None:
+        print(red(f"  [!] 检查失败: {latest}"))
+        return
+    if not has_upd:
+        print(green(f"  已是最新版本 v{VERSION}"))
+        return
+
+    print(cyan(f"  发现新版本 v{latest} (当前 v{VERSION})"))
+    try:
+        ans = input(f"  是否更新? [Y/n]: ").strip().lower()
+    except (EOFError, KeyboardInterrupt):
+        print(); return
+    if ans not in ('', 'y', 'yes'):
+        return
+
+    frozen = getattr(sys, 'frozen', False)
+    if frozen:
+        src = sys.executable
+        uname = platform.system()
+        if uname == 'Windows':
+            asset_name = 'bili-sniffer-windows.exe'
+        elif uname == 'Darwin':
+            asset_name = 'bili-sniffer-macos'
+        else:
+            asset_name = 'bili-sniffer-linux'
+        dl_url = assets.get(asset_name)
+        if not dl_url:
+            print(red(f"  [!] 未找到 {asset_name}"))
+            return
+        print(cyan(f"  [*] 当前程序: {src}"))
+    else:
+        src = os.path.abspath(__file__)
+        dl_url = f"{GITHUB_RAW}/bilibili_sniffer.py"
+        print(cyan(f"  [*] 当前脚本: {src}"))
+
+    print(cyan(f"  [*] 正在下载..."))
+    try:
+        r = requests.get(dl_url, headers=HEADERS, timeout=60)
+        r.raise_for_status()
+        new_data = r.content
+    except Exception as e:
+        print(red(f"  [!] 下载失败: {e}"))
+        return
+
+    tmp = src + ".new"
+    try:
+        with open(tmp, 'wb') as f:
+            f.write(new_data)
+        if not frozen:
+            os.chmod(tmp, os.stat(src).st_mode)
+        else:
+            os.chmod(tmp, 0o755)
+        os.replace(tmp, src)
+        print(green(f"  [+] 更新完成 v{latest} — 重新启动后生效"))
+    except (PermissionError, OSError):
+        print(yellow(f"  [!] 权限不足，无法直接替换 {src}"))
+        print(dim(f"  文件已下载到 {tmp}"))
+        if platform.system() != 'Windows':
+            print(yellow(f"  [*] 尝试用 sudo 替换..."))
+            try:
+                subprocess.run(['sudo', 'mv', tmp, src], check=True)
+                subprocess.run(['sudo', 'chmod', '755' if frozen else str(oct(os.stat(src).st_mode)[-3:]), src], check=True)
+                print(green(f"  [+] 更新完成 v{latest} — 重新启动后生效"))
+            except Exception as e2:
+                print(red(f"  [!] sudo 也失败了: {e2}"))
+                print(yellow(f"  请手动执行: sudo mv {tmp} {src}"))
+        else:
+            print(yellow(f"  请以管理员身份重新运行，或手动替换: {tmp} -> {src}"))
 
 def _i_next(args):
     if SESSION['search_total_pages'] <= 1:
@@ -1789,7 +1885,8 @@ def _i_help(args):
   {cyan('qadd <BV|#N>')}      加入下载队列
   {cyan('qrun')}              执行下载队列
   {cyan('qclear')}            清空下载队列
-  {cyan('settings')}          统一设置 (9项)
+  {cyan('settings')}          统一设置
+  {cyan('update')}            检查更新
   {cyan('help')}              本帮助
   {cyan('exit / q')}          退出
 
@@ -1804,7 +1901,7 @@ def interactive_shell():
         readline.set_history_length(1000)
         _cmds = ['search','hot','info','download','url','last','settings','set',
                  'quality','cookie','dir','help','exit','quit',
-                 'next','prev','daily','qlist','qadd','qrun','qclear']
+                 'next','prev','daily','qlist','qadd','qrun','qclear','update']
         def _complete(text, state):
             for m in [c for c in _cmds if c.startswith(text)]:
                 if state == 0:
@@ -1870,6 +1967,7 @@ def interactive_shell():
                 os.makedirs(d, exist_ok=True)
                 SESSION['download_dir'] = d; print(green(f"下载目录: {d}"))
             else: print(f"当前: {SESSION['download_dir']}")
+        elif cmd == 'update': _do_update(args)
         elif cmd == 'help': _i_help(args)
         else: print(yellow(f"未知命令: {cmd} (输入 help 查看帮助)"))
 
