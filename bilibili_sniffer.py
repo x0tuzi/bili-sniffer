@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.1"
+VERSION = "1.1.2"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -1728,13 +1728,45 @@ def _do_update(args=None):
         dl_url = f"{GITHUB_RAW}/bilibili_sniffer.py"
         print(cyan(f"  [*] 当前脚本: {src}"))
 
-    print(cyan(f"  [*] 正在下载..."))
+    print(cyan(f"  下载地址: {dl_url}"))
+    print(cyan(f"  [*] 正在连接..."), end='', flush=True)
     try:
-        r = requests.get(dl_url, headers=HEADERS, timeout=60)
+        r = requests.get(dl_url, headers=HEADERS, timeout=(10, 120), stream=True)
+        print(f"\r  {cyan('[→] 连接成功，下载中...')}     ", flush=True)
         r.raise_for_status()
-        new_data = r.content
+        total = int(r.headers.get('content-length', 0))
+        new_data = b''
+        chunk_size = 8192
+        last_pct = -1
+        for chunk in r.iter_content(chunk_size=chunk_size):
+            new_data += chunk
+            if total:
+                pct = len(new_data) * 100 // total
+                if pct != last_pct:
+                    bar_len = 30
+                    filled = bar_len * pct // 100
+                    bar = '█' * filled + '░' * (bar_len - filled)
+                    print(f'\r  {cyan(f"[↓]")} [{bar}] {pct}%  {len(new_data)/1024/1024:.1f}/{total/1024/1024:.1f} MB', end='', flush=True)
+                    last_pct = pct
+        status = 'done!' if not total else ''
+        print(f'\r  {cyan("[↓]")} 下载完成 {len(new_data)/1024/1024:.1f} MB {status}'.strip())
+    except requests.exceptions.ConnectionError as e:
+        print(f'\r  {red("[!] 连接失败: 无法访问 GitHub")}         ')
+        print(dim(f'  {e}'))
+        return
+    except requests.exceptions.Timeout as e:
+        print(f'\r  {red("[!] 连接超时")}         ')
+        print(dim(f'  {e}'))
+        return
+    except requests.exceptions.SSLError as e:
+        print(f'\r  {red("[!] SSL 错误")}         ')
+        print(dim(f'  {e}'))
+        return
+    except requests.exceptions.HTTPError as e:
+        print(f'\r  {red(f"[!] HTTP 错误: {r.status_code}")}         ')
+        return
     except Exception as e:
-        print(red(f"  [!] 下载失败: {e}"))
+        print(f'\r  {red(f"[!] 下载失败: {e}")}         ')
         return
 
     tmp = src + ".new"
