@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.15"
+VERSION = "1.1.16"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -729,6 +729,8 @@ def _mux_subtitles(video_path, sub_path, danmaku_path):
         os.rename(tmp_out, final_out)
         if has_sub:
             os.remove(sub_path)
+        if has_danmu:
+            os.remove(danmaku_path)
         print(green(f"  [+] 混流完成: {final_out} (弹幕/字幕可在播放器内开关)"))
     else:
         if os.path.exists(tmp_out):
