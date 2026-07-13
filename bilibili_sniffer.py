@@ -79,7 +79,7 @@ else:
     HISTORY_FILE = os.path.expanduser('~/.bili_sniffer_history')
     DEFAULT_DL_DIR = os.path.expanduser('~/bilibili_downloads')
 
-VERSION = "1.1.14"
+VERSION = "1.1.15"
 GITHUB_REPO     = "x0tuzi/bili-sniffer"
 GITHUB_API      = f"https://api.github.com/repos/{GITHUB_REPO}/releases/latest"
 GITHUB_RAW      = f"https://raw.githubusercontent.com/{GITHUB_REPO}/main"
@@ -705,19 +705,21 @@ def _mux_subtitles(video_path, sub_path, danmaku_path):
         return
     inputs = ['-i', video_path]
     maps = ['-map', '0']
+    idx = 1
     if has_sub:
         inputs.extend(['-i', sub_path])
-        maps.extend(['-map', '1'])
+        maps.extend(['-map', str(idx)])
+        idx += 1
     if has_danmu:
         inputs.extend(['-i', danmaku_path])
-        maps.extend(['-map', str(len(maps))])
+        maps.extend(['-map', str(idx)])
     if has_danmu:
         out_ext = '.mkv'
         codec_args = ['-c', 'copy']
     else:
         out_ext = '.mp4'
         codec_args = ['-c', 'copy', '-c:s', 'mov_text']
-    print(cyan(f"  [*] 合并字幕/弹幕到视频..."))
+    print(cyan(f"  [*] 混流字幕/弹幕到视频..."))
     tmp_out = video_path + f'_muxing_tmp{out_ext}'
     cmd = ['ffmpeg', '-y'] + inputs + codec_args + maps + [tmp_out]
     result = subprocess.run(cmd, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
@@ -727,13 +729,11 @@ def _mux_subtitles(video_path, sub_path, danmaku_path):
         os.rename(tmp_out, final_out)
         if has_sub:
             os.remove(sub_path)
-        if has_danmu:
-            os.remove(danmaku_path)
-        print(green(f"  [+] 已合并并删除源文件: {final_out}"))
+        print(green(f"  [+] 混流完成: {final_out} (弹幕/字幕可在播放器内开关)"))
     else:
         if os.path.exists(tmp_out):
             os.remove(tmp_out)
-        print(yellow("  [!] 合并失败，保留原始文件"))
+        print(yellow("  [!] 混流失败，保留原始文件"))
 
 def _notify(title, message):
     if SESSION.get('notify') and shutil.which('notify-send'):
