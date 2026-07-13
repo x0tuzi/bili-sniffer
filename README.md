@@ -8,75 +8,73 @@ B站视频下载器 — API 获取全清晰度流地址、批量下载、弹幕/
 
 ### 需要先装好
 
-- **Python 3.8+** （必需）
-- **pip** （通常和 Python 一起装好了）
+- **Python 3.8+** （方式二和方式三需要）
 - **ffmpeg** （可选，想合并字幕/弹幕到视频才需要）
 
-> ⚠️ 不知道怎么装 Python？去 https://python.org 下载安装包，安装时**勾选 "Add Python to PATH"**。
-
 ---
 
-### 🐧 Linux 用户 — 一键安装
+### 🪟 Windows — 选一种方式
 
-一条命令，选你喜欢的安装方式：
+<details open>
+<summary><b>方式一：一键安装脚本（推荐）</b></summary>
 
-```bash
-curl -fsSL https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main/install.sh | bash
-```
+右键下载 [setup.bat](https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main/setup.bat)，双击运行。
 
-会弹出三个选项：
-1. **单文件脚本**（推荐）— 下载 `.py` + 安装依赖
-2. **Python 虚拟环境** — 独立环境，不碰系统 Python
-3. **预编译二进制** — 单文件，连 Python 都不需要
+脚本会自动：
+1. 检测 Python，没有就弹出 python.org 下载页
+2. 安装 requests 等依赖
+3. 下载 bilibili_sniffer.py
+4. 在桌面生成快捷启动图标
 
-装完后终端输入 `bili-sniffer` 即可启动。
+> ⚠️ 如提示找不到 Python：去 python.org 下载安装包，**必须勾选 "Add Python to PATH"**，装完后再跑一次脚本。
 
----
+</details>
 
-### 🪟 Windows 用户 — 三步安装
+<details>
+<summary><b>方式二：预编译 .exe（不需要 Python）</b></summary>
 
-**第一步：打开终端**（PowerShell 或 cmd）
+去 [Releases](https://github.com/x0tuzi/bili-sniffer/releases) 下载 `bili-sniffer-windows.exe`，双击即用。
 
-**第二步：创建虚拟环境并安装**
+</details>
+
+<details>
+<summary><b>方式三：手动建虚拟环境</b></summary>
+
+打开终端（PowerShell 或 cmd），复制粘贴：
 
 ```powershell
 python -m venv "%USERPROFILE%\bili-sniffer"
 "%USERPROFILE%\bili-sniffer\Scripts\python" -m pip install requests browser_cookie3 cryptography
-```
-
-**第三步：下载脚本**
-
-```powershell
 curl -o "%USERPROFILE%\bili-sniffer\bilibili_sniffer.py" https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main/bilibili_sniffer.py
 ```
 
-每次使用前，先激活虚拟环境再运行：
+每次使用：
 
 ```powershell
 "%USERPROFILE%\bili-sniffer\Scripts\python" "%USERPROFILE%\bili-sniffer\bilibili_sniffer.py"
 ```
 
-> 💡 觉得路径太长？在 PowerShell 里先跑一次下面这行，之后就能用 `bili-sniffer` 命令了：
-> ```powershell
-> echo 'python "%USERPROFILE%\bili-sniffer\bilibili_sniffer.py" %*' > "%USERPROFILE%\.local\bin\bili-sniffer.bat"
-> ```
+</details>
 
 ---
 
-### 🍎 macOS 用户 — 三步安装
+### 🐧 Linux — 一键安装
 
-**第一步：打开终端**（在 启动台 → 其他 → 终端）
+```bash
+curl -fsSL https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main/install.sh | bash
+```
 
-**第二步：创建虚拟环境并安装**
+三条选项：单文件脚本 / Python 虚拟环境 / 预编译二进制。装完终端输入 `bili-sniffer`。
+
+---
+
+### 🍎 macOS — 三步安装
+
+打开终端，复制粘贴：
 
 ```bash
 python3 -m venv ~/bili-sniffer
 ~/bili-sniffer/bin/pip install requests browser_cookie3 cryptography
-```
-
-**第三步：下载脚本**
-
-```bash
 curl -o ~/bili-sniffer/bilibili_sniffer.py https://raw.githubusercontent.com/x0tuzi/bili-sniffer/main/bilibili_sniffer.py
 ```
 
@@ -86,16 +84,9 @@ curl -o ~/bili-sniffer/bilibili_sniffer.py https://raw.githubusercontent.com/x0t
 ~/bili-sniffer/bin/python ~/bili-sniffer/bilibili_sniffer.py
 ```
 
-> 💡 嫌路径太长？把下面这行加到 `~/.zshrc` 里，然后就能用 `bili-sniffer` 了：
-> ```bash
-> alias bili-sniffer='~/bili-sniffer/bin/python ~/bili-sniffer/bilibili_sniffer.py'
-> ```
-
 ---
 
-### 🐍 进阶：只用 .py 文件跑
-
-适合已经会 Python 的用户，不依赖虚拟环境：
+### 🐍 我用 git / 直接跑 .py
 
 ```bash
 git clone https://github.com/x0tuzi/bili-sniffer.git
@@ -149,7 +140,6 @@ bili-sniffer --sniff         # 抓包模式
 ```bash
 pip install pyinstaller
 pyinstaller --onefile --name bili-sniffer bilibili_sniffer.py
-# 在 dist/ 里找到 bili-sniffer
 ```
 
 ---
