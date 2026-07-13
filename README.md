@@ -8,7 +8,7 @@ B站视频下载器 — API 获取全清晰度流地址、批量下载、弹幕/
 
 ### 需要先装好
 
-- **Python 3.8+** （方式二和方式三需要）
+- **Python 3.8+** （方式一、二、四需要）
 - **ffmpeg** （可选，想合并字幕/弹幕到视频才需要）
 
 ---
@@ -31,14 +31,27 @@ B站视频下载器 — API 获取全清晰度流地址、批量下载、弹幕/
 </details>
 
 <details>
-<summary><b>方式二：预编译 .exe（不需要 Python）</b></summary>
+<summary><b>方式二：便携版 .zip — 下载解压即用</b></summary>
+
+1. 下载 [最新源代码 zip](https://github.com/x0tuzi/bili-sniffer/archive/refs/heads/main.zip)
+2. 解压到任意文件夹
+3. 双击 `run.bat`
+
+第一次运行默认启动会**自动创建 venv + 安装依赖**，之后直接启动，无需额外操作。
+
+> 需要 Python 3.8+ 已装好且 PATH 中可用。
+
+</details>
+
+<details>
+<summary><b>方式三：预编译 .exe（不需要 Python）</b></summary>
 
 去 [Releases](https://github.com/x0tuzi/bili-sniffer/releases) 下载 `bili-sniffer-windows.exe`，双击即用。
 
 </details>
 
 <details>
-<summary><b>方式三：手动建虚拟环境</b></summary>
+<summary><b>方式四：手动建虚拟环境</b></summary>
 
 打开终端（PowerShell 或 cmd），复制粘贴：
 
